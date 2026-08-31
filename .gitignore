@@ -1,0 +1,16 @@
+# Python Environments
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Data Files
+*.cwa
+*.pkl
+*.csv
+
+# VS Code settings
+.vscode/
