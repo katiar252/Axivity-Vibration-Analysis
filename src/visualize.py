@@ -51,11 +51,6 @@ def plot_first_hour(df_floor, df_below_seat, df_above_seat):
     plt.close()
 
 
-
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy.signal as signal
-
 def plot_weighted_psd(floor_data, below_data, above_data, fs=200):
     """
     Calculates and plots the Power Spectral Density (PSD) of the three sensors.

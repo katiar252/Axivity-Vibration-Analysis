@@ -1,8 +1,7 @@
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import scipy.integrate as integrate 
+import matplotlib.pyplot as plt 
 import numpy as np
 import scipy.signal as signal
 from src.signal_processing import iso_filter, calculate_iso_metrics, extract_active
