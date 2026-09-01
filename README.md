@@ -28,9 +28,9 @@ pip install -r requirements.txt
 
 ### 2. Add your data
 
-Place your raw `.cwa` sensor files in a `data/` folder at the project root. 
+Place raw `.cwa` sensor files in a `data/` folder at the project root. 
 
-Expected files (update filenames in `ingestion.py` to match your own):
+Expected files (update filenames in `ingestion.py` to match):
 ```
 data/
 ├── floor.cwa
@@ -52,18 +52,18 @@ python main.py
 
 ## Configuration
 
-Key analysis parameters are currently set as constants near the top of `main()` in `main.py`:
+Key analysis parameters are currently set as constants in `main.py`:
 
 | Parameter | Default | Description |
 |---|---|---|
 | `crop_minutes` | 45 | Minutes trimmed from start/end to remove synchronization knocks |
-| `threshold` | 0.075 m/s² | Vibration envelope threshold used to detect "active driving" vs. parked/idle |
-| `fs` | 200 Hz | Target sampling rate after alignment |
+| `threshold` | 0.075 m/s² | Vibration envelope threshold used to detect active driving vs. parked/idle |
+| `fs` | 200 Hz | Target sampling rate |
 | `k_factor` | 1.0 | ISO 2631-1 health weighting multiplier (vertical/seated) |
 
 These may need adjustment for other setups.
 
-## Output metrics explained
+## Output metrics 
 
 - **RMS** — root-mean-square of the frequency-weighted acceleration signal
 - **Crest Factor** — peak-to-RMS ratio; flags whether exposure is dominated by shocks/transients vs. continuous vibration
