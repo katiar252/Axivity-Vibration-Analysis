@@ -14,10 +14,10 @@ def iso_filter(fs, axis):
     # needed to remove ultra-low frequencies
     f1, Q1 = 0.4, 1/np.sqrt(2)
     w1 = pi2 * f1
-    num_h, den_h = [1, 0, 0], [1, w1/Q1, w1**2]
+    num_h, den_h = [1, 0, 0], [1, w1/Q1, w1**2]     #numerator and denominator coefficients
     
     # 2. Low-pass filter Hl(s)
-    # needed to remove very high-frequency noise that is not relevant
+    # needed to remove very high-frequency noise that is not relevant to human body 
     f2, Q2 = 100.0, 1/np.sqrt(2)
     w2 = pi2 * f2
     num_l, den_l = [w2**2], [1, w2/Q2, w2**2]
@@ -91,14 +91,29 @@ def calculate_iso_metrics(filtered_data, dt, t_exp_hours, k_factor = 1.0):
 
     return rms, crest_factor, vdv, a8
 
+def calculate_seat_value(above_active, below_active):
+    """
+    Calculates SEAT (Seat Effective Amplitude Transmissibility) values.
+    SEAT > 100: seat cushion amplifies vibration. 
+    SEAT < 100: seat cushion attenuates vibration. 
+    """
+
+    rms_above = np.sqrt(np.mean(above_active**2))
+    rms_below = np.sqrt(np.mean(below_active**2))
+
+    seat_value = (rms_above / rms_below) * 100
+
+    return seat_value
+
 def extract_active(floor_filtered, below_filtered, above_filtered, dt, threshold=0.1):
     """
-    Identifies true exposure time by filtering out parked/engine-off time.
+    Identifies true exposure time by filtering out parked/engine-off time. 
+    Threshold is set at 0.1 m/s^2 by default but can be changed. 
     """
     # Find the minimum length among all three arrays (to account for sensor clock drift)
     min_len = min(len(floor_filtered), len(below_filtered), len(above_filtered))
     
-    # Truncate all arrays to minimum overlapping length
+    # Cut all arrays to minimum overlapping length (remove extra samples due to clock drift)
     floor_filtered = floor_filtered[:min_len]
     below_filtered = below_filtered[:min_len]
     above_filtered = above_filtered[:min_len]
@@ -106,7 +121,7 @@ def extract_active(floor_filtered, below_filtered, above_filtered, dt, threshold
     # define rolling window size
     window = int(1.0/ dt)
 
-    #create rolling average of absolute amplitude 
+    # create rolling average of absolute amplitude 
     kernel = np.ones(window) / window
     envelope = np.convolve(np.abs(floor_filtered), kernel, mode='same')
 
@@ -118,7 +133,10 @@ def extract_active(floor_filtered, below_filtered, above_filtered, dt, threshold
     above_seat_active = above_filtered[is_active]
     below_seat_active = below_filtered[is_active]
 
+    # calculate time of exposure (driving time) in hours 
     t_exp_hours = len(floor_active) *dt /3600
+
+
     return floor_active, above_seat_active, below_seat_active, t_exp_hours
 
 

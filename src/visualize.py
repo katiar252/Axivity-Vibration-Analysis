@@ -7,25 +7,26 @@ from src.signal_processing import iso_filter
 
 def plot_first_hour(df_floor, df_below_seat, df_above_seat):
     """
-    Plots first hour of z axis data across 3 sensors to visually locate synchronization knocks.
+    Plots first hour of z axis data across 3 sensors to visually confirm sensor data collection
+    and verify presence of synchronization knocks.
     """
 
     print("Plotting first hour of Z axis data.")
 
-    #only first hour for plotting 
+    # only first hour for plotting- find start and end times
     start_time = df_floor.index[0]
     end_time = start_time + pd.Timedelta(minutes=60)
 
-    #take first hour
+    # take first hour
     plot_floor = df_floor.loc[start_time:end_time]
     plot_below = df_below_seat.loc[start_time:end_time]
     plot_above = df_above_seat.loc[start_time:end_time]
 
-    #create figure with 3 subplots (one for each sensor)
+    # create figure with 3 subplots (one for each sensor)
     print("Drawing graphs")
     fig, axes = plt.subplots(3,1, figsize=(15,8), sharex=True)
 
-    #plot z axis for each sensor
+    # plot z axis for each sensor
     axes[0].plot(plot_floor.index, plot_floor['z'], color='blue', label='Floor (Z)')
     axes[0].legend(loc='upper right')
     axes[0].set_ylabel('Acceleration (g)')
@@ -43,7 +44,7 @@ def plot_first_hour(df_floor, df_below_seat, df_above_seat):
     plt.suptitle('Z Axis Acceleration- First 60 minutes')
     plt.tight_layout()
     
-    # Open the interactive window
+    # Save the image as a png
     print("Saving Z axis accelerometry plot to file")
     plt.savefig("Z axis 1 hour.png", dpi=300) 
     print("check file")
@@ -57,7 +58,7 @@ def plot_weighted_psd(floor_data, below_data, above_data, fs=200):
     Shades the area where the seat amplifies (red) and attenuates (green) the floor vibration.
     """
     # calculate PSD using Welch's method
-    # nperseg=2048 gives us a smooth frequency resolution of about 0.1 Hz
+    # nperseg=2048 gives frequency resolution of about 0.1 Hz
     freqs, psd_floor = signal.welch(floor_data, fs=fs, nperseg=2048)
     _, psd_below = signal.welch(below_data, fs=fs, nperseg=2048)
     _, psd_above = signal.welch(above_data, fs=fs, nperseg=2048)
@@ -71,42 +72,42 @@ def plot_weighted_psd(floor_data, below_data, above_data, fs=200):
     ax.plot(freqs, psd_above, label='z-seat', color='forestgreen', linewidth=1.5)
 
     # add shading between the floor and the seat
-    # Red where seat > floor (Amplification/Hazard)
+    # red where seat > floor (amplification)
     ax.fill_between(freqs, psd_floor, psd_above, 
                     where=(psd_above > psd_floor), 
                     interpolate=True, color='lightcoral', alpha=0.5, label='Amplification')
     
-    # Green where seat <= floor (Attenuation/Protection)
+    # green where seat <= floor (attenuation)
     ax.fill_between(freqs, psd_floor, psd_above, 
                     where=(psd_above <= psd_floor), 
                     interpolate=True, color='lightgreen', alpha=0.5, label='Attenuation')
 
 
-    # 6. Formatting to match the reference style
+    # formatting 
     ax.set_title('Average Weighted PSD', fontweight='bold', fontsize=12)
     ax.set_xlabel('Frequency (Hz)')
     ax.set_ylabel('Weighted PSD')
     
-    # Restrict X-axis to 0-30 Hz since WBV energy is predominantly low-frequency
+    # restrict X-axis to 0-30 Hz since WBV energy is predominantly low-frequency
     ax.set_xlim(0, 30)
     
-    # Add light grid and legend
+    # formatting
     ax.grid(axis='y', linestyle='-', alpha=0.7)
     ax.legend(loc='upper right')
-    
-    # Light gray background for the plot area
     ax.set_facecolor("#bdc2c7")
     fig.patch.set_facecolor('white')
 
     plt.tight_layout()
 
+    #save PSD figure as png
     print("Saving weighted PSD plot to file")
     plt.savefig("Weighted PSD.png", dpi=300) 
 
     plt.close()
 
 
-# Calculate and plot ISO filter 
+# ----Calculate and plot ISO filter as Bode plot ---
+#obtain ISO filter coefficients 
 b_wk, a_wk = iso_filter(fs=200, axis='z')
 b_wd, a_wd = iso_filter(fs=200, axis='x')   #both x and y axes have the same filter
 
@@ -116,8 +117,8 @@ w_wk, h_wk = signal.freqz(b_wk, a_wk, worN=8000, fs=200)
 w_wd, h_wd = signal.freqz(b_wd, a_wd, worN=8000, fs=200)
 
 
-# Convert complex response 'h' to magnitude in decibels (dB)
-# We add a tiny offset to avoid taking log of zero
+# convert complex response 'h' to magnitude in decibels (dB)
+# add offset to avoid taking log of zero
 mag_wk = 20 * np.log10(np.abs(h_wk) + 1e-10)
 mag_wd = 20 * np.log10(np.abs(h_wd) + 1e-10)
 
@@ -143,6 +144,7 @@ plt.ylim([-60, 10])
 plt.legend(loc='upper left', fontsize=12)
 plt.tight_layout()
 
+#save plot as png
 print("Displaying filter response plot...")
 print("Saving ISO filter plot to file")
 plt.savefig("ISO filter response.png", dpi=300) 
